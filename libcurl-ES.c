@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
-
-
+#include <strings.h>
 
 struct string {
   char *ptr;
@@ -41,7 +40,6 @@ char *value = NULL;
 struct string s;
 struct curl_slist *headers = NULL;
 
-
 void init() {
 
   init_string(&s);
@@ -58,11 +56,28 @@ void deinit() {
   printf("%s\n", "deinit called");
 }
 
-char *get() {
+char *build_url(char* server, char* query) {
+
+  char *request ="";
+  if((request = malloc(strlen(query)+strlen(server)+1)) != NULL){
+    request[0] = '\0';   // ensures the memory is an empty string
+    strcat(request,server);
+    strcat(request,query);
+    return request;
+  } else {
+    fprintf(stderr,"malloc failed!\n");
+    exit;
+  }
+
+}
+
+char *get(char *query, char *server) {
+
+  char *request = build_url(server, query);
+  
 
   if(curl) {
-
-    curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9200/_bulk");
+    curl_easy_setopt(curl, CURLOPT_URL, request);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
 
@@ -86,78 +101,62 @@ void set_headers() {
 
   if(curl) {
     headers = curl_slist_append(headers, "Accept: application/json");
-    headers = curl_slist_append(headers, "Content-Type: application/x-ndjson");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
     headers = curl_slist_append(headers, "charsets: utf-8");
   }
 
 
 }
 
-char* post(char* json_struct) {
-
+char* put(char *query, char* server, char *json_struct) {
+  char *request = build_url(server, query);
   set_headers();
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localhost:9200/data/name/_bulk");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST"); /* !!! */
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_struct); /* data goes here */
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
+  if(curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, request);
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "POST"); /* !!! */
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_struct); /* data goes here */
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
 
-  res = curl_easy_perform(curl);
-  printf("%s\n", s.ptr);
-  value = s.ptr;
+    res = curl_easy_perform(curl);
+    printf("%s\n", s.ptr);
+    value = s.ptr;
 
     /* Check for errors */ 
-  if(res != CURLE_OK)
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-      curl_easy_strerror(res));
+    if(res != CURLE_OK)
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+        curl_easy_strerror(res));
 
     /* always cleanup */ 
-  curl_easy_cleanup(curl);
+    curl_easy_cleanup(curl);
+    return value;
+  } else {
 
-  return value;
+    printf("curl not initialized correctly");
+
+  }
 
 }
 
-
-char* put(char* json_struct) {
-
-  set_headers();
-  curl_easy_setopt(curl, CURLOPT_URL, "http://localst:9200/data/name/_bulk");
-  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT"); /* !!! */
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_struct); /* data goes here */
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writefunc);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &s);
-
-  res = curl_easy_perform(curl);
-  printf("%s\n", s.ptr);
-  value = s.ptr;
-
-    /* Check for errors */ 
-  if(res != CURLE_OK)
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-      curl_easy_strerror(res));
-
-    /* always cleanup */ 
-  curl_easy_cleanup(curl);
-
-  return value;
-}
-
-int main(void)
+int main(int argc, char** argv)
 {
-  /*"{ \"name\" : \"Pedro\" , \"age\" : \"22\" }" */
 
-  /*char* jsonObj = "{ \"index\" : \"{ \"_index\" : \"sample\", \"type\" : \"s\"  } },\n{ \"Amount\": \"480\", \"Quantity\": \"2\", \"Id\": \"1\", \"Client_Store_sk\": \"1109\"},\n{ \"index\" : \"{ \"_index\" : \"sample\", \"type\" : \"s\" }},\n{\"Amount\": \"23\", \"Quantity\": \"2\", \"Id\": \"2\", \"Client_Store_sk\": \"50\"},\n"; */
-  char *jsonObj = "{ \"index\" : {} }\n{ \"name\" : \"videet\" }\n{ \"index\" : {} }\n{ \"name\" : \"surmeet\" }\n";
-
+  // char *jsonObj = "{ \"index\" : {} }\n{ \"name\" : \"videet\" }\n{ \"index\" : {} }\n{ \"name\" : \"surmeet\" }\n";
   init();
-  printf("%s\n", jsonObj); 
-  put(jsonObj);
+  char *method = argv[1];
+  char *query = argv[2];
+  char *server = argv[3];
+
+  if(!strcasecmp(method, "GET")) {
+    get(query, server);
+  } else if(!strcasecmp(method, "PUT")) {
+    char *json_data = argv[4];
+    put(query, server, json_data);
+  } else {
+    printf("%s\n","Please enter correct method");
+  }
+
   deinit();
   return 0;
 }
-
-
-
