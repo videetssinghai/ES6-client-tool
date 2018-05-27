@@ -3,6 +3,7 @@
 #include <string.h>
 #include <curl/curl.h>
 #include <strings.h>
+#include <stdlib.h>
 
 struct string {
   char *ptr;
@@ -74,7 +75,6 @@ char *build_url(char* server, char* query) {
 char *get(char *query, char *server) {
 
   char *request = build_url(server, query);
-  
 
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, request);
@@ -105,7 +105,12 @@ void set_headers() {
     headers = curl_slist_append(headers, "charsets: utf-8");
   }
 
+}
 
+void ir_strcpy( char *s1, const char *s2, int rb, int re )
+{
+  while( (rb <= re) && (*s1++ = s2[rb]) ) rb++;
+  *s1 = 0;
 }
 
 char* put(char *query, char* server, char *json_struct) {
@@ -147,16 +152,36 @@ int main(int argc, char** argv)
   char *method = argv[1];
   char *query = argv[2];
   char *server = argv[3];
+  printf("method: %s\n",method);
+  printf("query: %s\n",query);
+  printf("server: %s\n",server);
+ 
+  FILE *fptr;
+  fptr = fopen("program.txt", "w");
+  if(fptr == NULL) {
+    printf("Error!");
+  }
+
+  fprintf(fptr,"hello");
 
   if(!strcasecmp(method, "GET")) {
     get(query, server);
   } else if(!strcasecmp(method, "PUT")) {
+
+    // char json_data[strlen(argv[4])];
+    // ir_strcpy(json_data, argv[4], 1, strlen(argv[4])-2);
     char *json_data = argv[4];
+    printf("data: %s\n",argv[4]);
+    printf("data: %s\n",json_data);
+
+    fprintf(fptr,"%s\n%s\n%s\n%s", method, query, server, json_data);
+    fclose(fptr);
     put(query, server, json_data);
   } else {
-    printf("%s\n","Please enter correct method");
-  }
+   fprintf(fptr,"%s\n%s\n%s\n", method, query, server);
+   printf("%s\n","Please enter correct method");
+ }
 
-  deinit();
-  return 0;
+ deinit();
+ return 0;
 }
