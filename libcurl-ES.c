@@ -149,37 +149,50 @@ int main(int argc, char** argv)
 
   // char *jsonObj = "{ \"index\" : {} }\n{ \"name\" : \"videet\" }\n{ \"index\" : {} }\n{ \"name\" : \"surmeet\" }\n";
   init();
-  char *method = argv[1];
-  char *query = argv[2];
-  char *server = argv[3];
-  printf("method: %s\n",method);
-  printf("query: %s\n",query);
-  printf("server: %s\n",server);
- 
   FILE *fptr;
-  fptr = fopen("program.txt", "w");
+
+  fptr = fopen("/home/videet/ES6-client-tool/program.txt", "a");
   if(fptr == NULL) {
     printf("Error!");
   }
 
-  fprintf(fptr,"hello");
+  fprintf(fptr,"%s\n", "hello");
+
+  char *method = argv[1];
+  fprintf(fptr,"%s\n", method);
+
+  char *query = argv[2];
+  fprintf(fptr,"%s\n", query);
+
+  char *server = argv[3];
+  fprintf(fptr,"%s\n", server);
+  // printf("query: %s\n",query);
+  // printf("server: %s\n",server);
+
+  // char *method = "PUT";
+  // char *query = "sample/s/33";
+  // char *server = "http://localhost:9200/";
 
   if(!strcasecmp(method, "GET")) {
     get(query, server);
+
   } else if(!strcasecmp(method, "PUT")) {
 
-    // char json_data[strlen(argv[4])];
-    // ir_strcpy(json_data, argv[4], 1, strlen(argv[4])-2);
     char *json_data = argv[4];
-    printf("data: %s\n",argv[4]);
+    // ir_strcpy(json_data, argv[4], 1, strlen(argv[4])-2);
+    // char *json_data = "{ \"name\" : \"videet\" }";
     printf("data: %s\n",json_data);
 
-    fprintf(fptr,"%s\n%s\n%s\n%s", method, query, server, json_data);
+    fprintf(fptr,"%s\n",json_data);
     fclose(fptr);
+
     put(query, server, json_data);
+
   } else {
+
    fprintf(fptr,"%s\n%s\n%s\n", method, query, server);
    printf("%s\n","Please enter correct method");
+   
  }
 
  deinit();
