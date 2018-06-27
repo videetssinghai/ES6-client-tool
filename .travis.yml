@@ -1,6 +1,6 @@
 language: c
 install: make get-deps
-script: gcc libcurl.c -lcurl
+script: gcc libcurl.c `pkg-config --cflags --libs glib-2.0` -lcurl
 install: 
       - sudo apt-get install libcurl4-gnutls-dev
       - sudo apt-get install --yes --force-yes build-essential libglib2.0-dev

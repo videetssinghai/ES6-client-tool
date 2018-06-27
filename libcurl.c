@@ -3,8 +3,6 @@
 #include <string.h>
 #include <strings.h>
 #include "libcurl.h"
-#include <string.h>
-
 
 Testdst_Curl *
 tesdst_curl_create(void)
@@ -115,4 +113,9 @@ _put_elasticsearch(Testdst_Curl *self, gchar *server, gchar *port, gchar *index,
    return response_code;
  }
 
+}
+
+int main(int argc, char **argv)
+{
+    /* unit test code goes here */
 }

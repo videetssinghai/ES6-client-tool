@@ -1,4 +1,5 @@
 #include <curl/curl.h>
+#include <glib.h>
 
 typedef struct _Testdst_Curl
 {
