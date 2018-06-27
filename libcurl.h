@@ -1,6 +1,3 @@
-#ifndef LIBCURL_H_INCLUDED
-#define LIBCURL_H_INCLUDED
-#include "driver.h"
 #include <curl/curl.h>
 
 typedef struct _Testdst_Curl
