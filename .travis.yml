@@ -1,4 +1,4 @@
 language: c
 install: make get-deps
 script: gcc libcurl.c -lcurl
-before_install: sudo apt-get install libcurl4-gnutls-dev
+install: sudo apt-get install libcurl4-gnutls-dev
