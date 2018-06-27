@@ -3,12 +3,7 @@
 #include <string.h>
 #include <strings.h>
 #include "libcurl.h"
-#include "messages.h"
-#include "scratch-buffers.h"
 #include <string.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
 
 
 Testdst_Curl *
@@ -45,16 +40,16 @@ _get_curl_headers(Testdst_Curl *self)
   struct curl_slist *headers = NULL;
 
   if(self->curl)
-    {
+  {
 
-      headers = curl_slist_append(headers, "Accept: application/json");
-      headers = curl_slist_append(headers, "Content-Type: application/json");
-      headers = curl_slist_append(headers, "charsets: utf-8");
+    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "charsets: utf-8");
 
-      return headers;
-    }
+    return headers;
+  }
 
-  msg_error("Error in Headers, curl not initialized");
+  fprintf(stderr, "Error in Headers, curl not initialized");
   return headers;
 }
 
@@ -81,44 +76,43 @@ _curl_set_opt(Testdst_Curl *self, gchar *msg, gchar *url, struct curl_slist *cur
 
 glong
 _put_elasticsearch(Testdst_Curl *self, gchar *server, gchar *port, gchar *index, gchar *type, gchar *custom_id,
-                   gchar *json_struct)
+ gchar *json_struct)
 {
   GString *request = _build_url(server, port, index, type, custom_id);
   glong response_code;
   GString *response;
 
-  msg_debug("Inside the libcurl",
-            evt_tag_str("url", request->str),
-            evt_tag_str("server", server),evt_tag_str("data", json_struct));
+  fprintf(stdout, "url:%s, server:%s, data:%s\n", request->str, server, json_struct);
+
 
   if(self->curl)
-    {
+  {
 
-      struct curl_slist *curl_headers = _get_curl_headers(self);
-      _curl_set_opt(self, json_struct, request->str, curl_headers);
+    struct curl_slist *curl_headers = _get_curl_headers(self);
+    _curl_set_opt(self, json_struct, request->str, curl_headers);
 
       /* for debugging */
       response = g_string_new(NULL); /* the write buffer */
-      curl_easy_setopt(self->curl, CURLOPT_WRITEFUNCTION, _write_data);
-      curl_easy_setopt(self->curl, CURLOPT_WRITEDATA, response);
+    curl_easy_setopt(self->curl, CURLOPT_WRITEFUNCTION, _write_data);
+    curl_easy_setopt(self->curl, CURLOPT_WRITEDATA, response);
 
-      self->result = curl_easy_perform(self->curl);
+    self->result = curl_easy_perform(self->curl);
 
-      msg_debug("request completed", evt_tag_str("result",response->str));
+    fprintf(stdout, "request completed result: %s\n", response->str);
 
       /* Check for errors */
-      if(self->result != CURLE_OK)
-        {
-          msg_error("Error in PUT",evt_tag_str("curl_easy_perform() failed: %s\n", curl_easy_strerror(self->result)));
-        }
+    if(self->result != CURLE_OK)
+    {
+     fprintf(stderr, "Error in PUT: curl_easy_perform() failed: %s\n", curl_easy_strerror(self->result));
+   }
 
       /* always cleanup */
-      curl_slist_free_all(curl_headers);
-      g_string_free(response, TRUE);
+   curl_slist_free_all(curl_headers);
+   g_string_free(response, TRUE);
 
-      curl_easy_getinfo (self->curl, CURLINFO_RESPONSE_CODE, &response_code);
+   curl_easy_getinfo (self->curl, CURLINFO_RESPONSE_CODE, &response_code);
 
-      return response_code;
-    }
+   return response_code;
+ }
 
 }
