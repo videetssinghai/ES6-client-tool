@@ -12,4 +12,3 @@ glong _put_elasticsearch(Testdst_Curl *self, gchar *server, gchar *port, gchar *
                          gchar *json_struct);
 void testdst_curl_deinit(Testdst_Curl *self);
 Testdst_Curl *tesdst_curl_create(void);
-#endif
